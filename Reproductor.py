@@ -5,15 +5,35 @@ from Tooltip import Tooltip
 import pygame.mixer as mx
 import tkinter.ttk as ttk
 import pygame
+from tkinter import filedialog
 
 class Reproductor():
+    def agregar_cancion(self):
+        canciones = filedialog.askopenfilenames(filetypes=[("Archivos de audio", "*.mp3")])
+        for cancion in canciones:
+            self.canciones.append(cancion)
+            self.lista_canciones.insert(END, cancion.split("/")[-1])  # Muestra solo el nombre del archivo
+
     def play(self, event):
+        if not self.canciones:
+            messagebox.showwarning("Advertencia", "No hay canciones en la lista.")
+            return
+
+        if self.indice_cancion_actual >= len(self.canciones):
+            messagebox.showerror("Error", "Índice de canción fuera de rango.")
+            return
+
         mx.music.load(self.canciones[self.indice_cancion_actual])
-        mx.music.play()
-        self.lblestado.config(text="Reproducciendo...")
+        mx.music.play(loops=0)
+        self.lblestado.config(text="Reproduciendo... " + self.canciones[self.indice_cancion_actual])
+        self.duracion_cancion_actual = pygame.mixer.Sound(self.canciones[self.indice_cancion_actual]).get_length()
+        self.deslizar.config(to=self.duracion_cancion_actual)
+        self.actualizar_barra_progreso()
+        
         self.btnPause.config(state="normal")
         self.btnStop.config(state="normal")
         self.btnPlay.config(state="disabled")
+        self.bandera = True
 
     def pause(self, event):
         if(self.bandera == False):
